@@ -1,5 +1,23 @@
 package com.project.aws;
 
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.SdkClientException;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ListObjectsV2Result;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -7,49 +25,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.SdkClientException;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.ListObjectsV2Result;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
-
-@CrossOrigin(maxAge = 3600, origins = "*")
-@RestController
-public class MainUploadController {
-
-    @Value("${aws.access_key_id}")
-    private String awsId;
-
-    @Value("${aws.secret_access_key}")
-    private String awsKey;
-
-    @Value("${s3.region}")
-    private String region;
+@Service
+public class S3Services {
+    @Autowired
+    private AmazonS3 s3;
 
     @Value("${s3.bucket}")
     private String bucketName;
 
-    BasicAWSCredentials awsCreds = new BasicAWSCredentials(awsId, awsKey);
-    AmazonS3 s3 = AmazonS3ClientBuilder.standard()
-            .withRegion(Regions.fromName(region))
-            .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
-            .build();
-
-    @GetMapping("/")
-    public ResponseEntity<?> getUploadMainPage() {
-
+    public ArrayList<Image> getUploadMainPage() {
         ListObjectsV2Result result = s3.listObjectsV2(bucketName);
         List<S3ObjectSummary> objects = result.getObjectSummaries();
         ArrayList<Image> images = new ArrayList<>();
@@ -58,11 +42,11 @@ public class MainUploadController {
             images.add(new Image(i++, os.getKey()));
         }
 
-        return new ResponseEntity<>(images, HttpStatus.OK);
+        return images;
     }
 
-    @GetMapping("/d/{filename}")
-    public ResponseEntity<?> download(@PathVariable String nameOfFileToDownload) {
+
+    public String download(String nameOfFileToDownload) {
 
         System.out.format("Downloading %s from S3 bucket %s...\n", nameOfFileToDownload, bucketName);
 
@@ -87,11 +71,11 @@ public class MainUploadController {
             System.err.println(e.getMessage());
             System.exit(1);
         }
-        return new ResponseEntity<>(nameOfFileToDownload, HttpStatus.OK);
+
+        return nameOfFileToDownload;
     }
 
-    @PostMapping("/upload")
-    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
+    public boolean uploadFile(MultipartFile file) {
 
         File f = new File(file.getOriginalFilename());
         System.out.println(f.getAbsolutePath());
@@ -99,13 +83,13 @@ public class MainUploadController {
 
         try {
             s3.putObject(bucketName, file.getOriginalFilename(), moveAndStoreFile(file, path));
-            return new ResponseEntity<>(HttpStatus.OK);
+            return true;
         } catch (SdkClientException e) {
             System.out.println(e.getMessage());
-            return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
+            return false;
         } catch (IOException e) {
             e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
+            return false;
         }
     }
 
