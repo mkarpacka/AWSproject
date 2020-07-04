@@ -87,33 +87,32 @@ public class MainUploadController {
     }
 
     // Request do przeslania danego pliku o danym podanej nazwie podanej w inpucie
-    @PutMapping("/upload/{name}")
-    public ResponseEntity<?> uploadFile(@RequestParam("name") String name, @RequestBody MultipartFile file) {
+    @PostMapping("/upload")
+    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
 
         AmazonS3 s3 = AmazonS3ClientBuilder.standard()
                 .withRegion(Regions.US_EAST_1)
                 .build();
 
-        File f = new File(name);
+        File f = new File(file.getOriginalFilename());
         System.out.println(f.getAbsolutePath());
         String path = f.getAbsolutePath();
 
         try {
-            s3.putObject(bucketName, name, moveAndStoreFile(file, name, path));
+            s3.putObject(bucketName, file.getOriginalFilename(), moveAndStoreFile(file, path));
+            return new ResponseEntity<>(HttpStatus.OK);
         } catch (SdkClientException e) {
             System.out.println(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
         } catch (IOException e) {
             e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
         }
-
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     // Konwersja do multipart file - inaczej sie nie da przeslac
-    public static File moveAndStoreFile(MultipartFile file, String name, String path) throws IOException {
-        String url = path + name;
-        System.out.println(url);
-        File fileToSave = new File(url);
+    public static File moveAndStoreFile(MultipartFile file, String path) throws IOException {
+        File fileToSave = new File(path);
         fileToSave.createNewFile();
         FileOutputStream fos = new FileOutputStream(fileToSave);
         fos.write(file.getBytes());
