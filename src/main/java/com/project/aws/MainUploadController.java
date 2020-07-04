@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,14 +29,26 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 @RestController
 public class MainUploadController {
 
-    private String bucketName = "hellobucket";
+    @Value("${aws.access_key_id}")
+    private String awsId;
+
+    @Value("${aws.secret_access_key}")
+    private String awsKey;
+
+    @Value("${s3.region}")
+    private String region;
+
+    @Value("${s3.bucket}")
+    private String bucketName;
+
+    BasicAWSCredentials awsCreds = new BasicAWSCredentials(awsId, awsKey);
+    AmazonS3 s3 = AmazonS3ClientBuilder.standard()
+            .withRegion(Regions.fromName(region))
+            .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
+            .build();
 
     @GetMapping("/")
     public ResponseEntity<?> getUploadMainPage() {
-
-        AmazonS3 s3 = AmazonS3ClientBuilder.standard()
-                .withRegion(Regions.US_EAST_1)
-                .build();
 
         ListObjectsV2Result result = s3.listObjectsV2(bucketName);
         List<S3ObjectSummary> objects = result.getObjectSummaries();
@@ -47,13 +62,10 @@ public class MainUploadController {
     }
 
     @GetMapping("/d/{filename}")
-    public ResponseEntity<?> download(@PathVariable String filename) {
+    public ResponseEntity<?> download(@PathVariable String nameOfFileToDownload) {
 
-        String nameOfFileToDownload = filename;
         System.out.format("Downloading %s from S3 bucket %s...\n", nameOfFileToDownload, bucketName);
-        final AmazonS3 s3 = AmazonS3ClientBuilder.standard()
-                .withRegion(Regions.US_EAST_1)
-                .build();
+
         try {
             S3Object o = s3.getObject(bucketName, nameOfFileToDownload);
             S3ObjectInputStream s3is = o.getObjectContent();
@@ -80,10 +92,6 @@ public class MainUploadController {
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
-
-        AmazonS3 s3 = AmazonS3ClientBuilder.standard()
-                .withRegion(Regions.US_EAST_1)
-                .build();
 
         File f = new File(file.getOriginalFilename());
         System.out.println(f.getAbsolutePath());
