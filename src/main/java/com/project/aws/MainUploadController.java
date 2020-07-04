@@ -9,11 +9,8 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.SdkClientException;
@@ -29,10 +26,8 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 @RestController
 public class MainUploadController {
 
-    // Nazwa kubelka w AWS
     private String bucketName = "hellobucket";
 
-    // Strona startowa z lista plikow w kubelku
     @GetMapping("/")
     public ResponseEntity<?> getUploadMainPage() {
 
@@ -45,14 +40,11 @@ public class MainUploadController {
         ArrayList<Image> images = new ArrayList<>();
         int i = 0;
         for (S3ObjectSummary os : objects) {
-            // System.out.println("* " + os.getKey());
             images.add(new Image(i++, os.getKey()));
         }
 
         return new ResponseEntity<>(images, HttpStatus.OK);
     }
-
-    // Request do pobrania danego pliku
 
     @GetMapping("/d/{filename}")
     public ResponseEntity<?> download(@PathVariable String filename) {
@@ -86,7 +78,6 @@ public class MainUploadController {
         return new ResponseEntity<>(nameOfFileToDownload, HttpStatus.OK);
     }
 
-    // Request do przeslania danego pliku o danym podanej nazwie podanej w inpucie
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
 
@@ -110,7 +101,6 @@ public class MainUploadController {
         }
     }
 
-    // Konwersja do multipart file - inaczej sie nie da przeslac
     public static File moveAndStoreFile(MultipartFile file, String path) throws IOException {
         File fileToSave = new File(path);
         fileToSave.createNewFile();
