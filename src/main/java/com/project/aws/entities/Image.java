@@ -1,4 +1,4 @@
-package com.project.aws;
+package com.project.aws.entities;
 
 public class Image {
 

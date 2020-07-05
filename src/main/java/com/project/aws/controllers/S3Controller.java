@@ -1,5 +1,6 @@
-package com.project.aws;
+package com.project.aws.controllers;
 
+import com.project.aws.services.S3Services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @CrossOrigin(maxAge = 3600, origins = "*")
 @RestController
-public class FileUploadController {
+public class S3Controller {
 
     @Autowired
     S3Services s3Services;
