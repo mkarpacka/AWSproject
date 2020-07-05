@@ -21,8 +21,8 @@ public class FileUploadController {
     }
 
     @GetMapping("/d/{filename}")
-    public ResponseEntity<?> download(@PathVariable String nameOfFileToDownload) {
-        return new ResponseEntity<>(s3Services.download(nameOfFileToDownload), HttpStatus.OK);
+    public ResponseEntity<?> download(@PathVariable String filename) {
+        return new ResponseEntity<>(s3Services.download(filename), HttpStatus.OK);
     }
 
     @PostMapping("/upload")
