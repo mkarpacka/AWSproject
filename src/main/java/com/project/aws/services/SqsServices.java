@@ -21,22 +21,24 @@ public class SqsServices {
     @Value("${sqs_queue_url}")
     private String queueUrl;
 
-    public String sendMessageFromQueue() {
-        String myMessage = "Hello World form epsilon";
-
+    public boolean sendMessageFromQueue(String nameOfFile) {
         Map<String, MessageAttributeValue> messageAttributes = new HashMap<>();
-        messageAttributes.put("AttributeOne", new MessageAttributeValue()
-                .withStringValue("This is an attribute")
-                .withDataType("String"));
+        try{
+            messageAttributes.put("AttributeOne", new MessageAttributeValue()
+                    .withStringValue("This is an attribute")
+                    .withDataType("String"));
 
-        SendMessageRequest send_msg_request = new SendMessageRequest()
-                .withQueueUrl(queueUrl)
-                .withMessageBody(myMessage)
-                .withDelaySeconds(5)
-                .withMessageAttributes(messageAttributes);
+            SendMessageRequest send_msg_request = new SendMessageRequest()
+                    .withQueueUrl(queueUrl)
+                    .withMessageBody(nameOfFile)
+                    .withDelaySeconds(5)
+                    .withMessageAttributes(messageAttributes);
 
-        sqs.sendMessage(send_msg_request);
-        return myMessage;
+            sqs.sendMessage(send_msg_request);
+            return true;
+        }catch(Exception e){
+            return false;
+        }
     }
 
     public List<Message> getMessageToQueue() {
