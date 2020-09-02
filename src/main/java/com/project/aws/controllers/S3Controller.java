@@ -1,5 +1,6 @@
 package com.project.aws.controllers;
 
+import com.project.aws.services.ImageTransformServices;
 import com.project.aws.services.S3Services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -7,12 +8,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+
 @CrossOrigin(maxAge = 3600, origins = "*")
 @RestController
 public class S3Controller {
 
     @Autowired
     S3Services s3Services;
+    @Autowired
+    ImageTransformServices imageTransformServices;
 
     @GetMapping("/")
     public ResponseEntity<?> getUploadMainPage() {
@@ -31,5 +36,17 @@ public class S3Controller {
         } else {
             return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
         }
+    }
+
+    @GetMapping("/save-edited-photo/{filename}")
+    public ResponseEntity<?> saveEditedPhoto(@PathVariable String filename) throws IOException {
+        s3Services.uploadFile(imageTransformServices.saveGraphicAsImage(filename));
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/policy")
+    public ResponseEntity<?> funkcja() throws Exception {
+        s3Services.fukc123();
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,12 @@ public class SqsServices {
 
     @Autowired
     AmazonSQS sqs;
+
+    @Autowired
+    ImageTransformServices imageTransformServices;
+
+    @Autowired
+    S3Services s3Services;
 
     @Value("${sqs_queue_url}")
     private String queueUrl;
@@ -35,6 +42,7 @@ public class SqsServices {
                     .withMessageAttributes(messageAttributes);
 
             sqs.sendMessage(send_msg_request);
+            System.out.println("workin");
             return true;
         }catch(Exception e){
             return false;
@@ -46,6 +54,13 @@ public class SqsServices {
 
         for (Message m : messages) {
             System.out.println(m.getBody());
+            try {
+                s3Services.uploadFile(imageTransformServices.saveGraphicAsImage(m.getBody()));
+                sqs.deleteMessage(queueUrl, m.getReceiptHandle());
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("error in getmessagetoqueue");
+            }
         }
         return messages;
     }
