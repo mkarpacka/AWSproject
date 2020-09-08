@@ -20,9 +20,6 @@ public class SqsServices {
     AmazonSQS sqs;
 
     @Autowired
-    ImageTransformServices imageTransformServices;
-
-    @Autowired
     S3Services s3Services;
 
     @Value("${sqs_queue_url}")

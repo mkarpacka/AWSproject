@@ -21,10 +21,7 @@ public class SqsController {
 
     @PostMapping("/send-message")
     public ResponseEntity<?> sendMessage(@RequestBody String[] fileNames) {
-//        sqsServices.sendMessagesToQueue(fileNames);
-        for (String fileName : fileNames) {
-            System.out.println(fileName);
-        }
+        sqsServices.sendMessagesToQueue(fileNames);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
