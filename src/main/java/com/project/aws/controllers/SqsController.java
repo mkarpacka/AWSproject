@@ -20,11 +20,11 @@ public class SqsController {
     }
 
     @PostMapping("/send-message")
-    public ResponseEntity<?> sendMessage(@RequestBody String fileName) {
-        if(sqsServices.sendMessageFromQueue(fileName)) {
-            return new ResponseEntity<>(HttpStatus.OK);
-        }else {
-            return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
+    public ResponseEntity<?> sendMessage(@RequestBody String[] fileNames) {
+//        sqsServices.sendMessagesToQueue(fileNames);
+        for (String fileName : fileNames) {
+            System.out.println(fileName);
         }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

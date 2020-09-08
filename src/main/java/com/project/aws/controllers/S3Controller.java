@@ -29,24 +29,8 @@ public class S3Controller {
         return new ResponseEntity<>(s3Services.download(filename), HttpStatus.OK);
     }
 
-    @PostMapping("/upload")
-    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
-        if (s3Services.uploadFile(file)) {
-            return new ResponseEntity<>(HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
-        }
-    }
-
-    @GetMapping("/save-edited-photo/{filename}")
-    public ResponseEntity<?> saveEditedPhoto(@PathVariable String filename) throws IOException {
-        s3Services.uploadFile(imageTransformServices.saveGraphicAsImage(filename));
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @GetMapping("/policy")
-    public ResponseEntity<?> funkcja() throws Exception {
-        s3Services.fukc123();
-        return new ResponseEntity<>(HttpStatus.OK);
+    @GetMapping("/aws-url/{filename}")
+    public ResponseEntity<?> getAwsS3Url(@PathVariable String filename) throws Exception {
+        return new ResponseEntity<>(s3Services.getAwsS3Url(filename), HttpStatus.OK);
     }
 }

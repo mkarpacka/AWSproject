@@ -9,7 +9,7 @@ import com.project.aws.entities.Image;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+
 
 import java.io.*;
 import java.net.URL;
@@ -69,39 +69,7 @@ public class S3Services {
         return nameOfFileToDownload;
     }
 
-    public boolean uploadFile(MultipartFile file) {
-
-        File f = new File(file.getOriginalFilename());
-        System.out.println(f.getAbsolutePath());
-        String path = f.getAbsolutePath();
-
-        try {
-            s3.putObject(bucketName, file.getOriginalFilename(), moveAndStoreFile(file, path));
-            return true;
-        } catch (SdkClientException e) {
-            System.out.println(e.getMessage());
-            return false;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public static File moveAndStoreFile(MultipartFile file, String path) throws IOException {
-        File fileToSave = new File(path);
-        fileToSave.createNewFile();
-        FileOutputStream fos = new FileOutputStream(fileToSave);
-        fos.write(file.getBytes());
-        fos.close();
-        return fileToSave;
-    }
-
-    //
-
-    public void fukc123() throws IOException {
-        String bucketName = "hellobucket";
-        String objectKey = "facebook.jpg"; //PRZEKAZAC NAZWE
-
+    public String getAwsS3Url(String filename) throws IOException {
         try {
             // Set the presigned URL to expire after one hour.
             java.util.Date expiration = new java.util.Date();
@@ -112,12 +80,14 @@ public class S3Services {
             // Generate the presigned URL.
             System.out.println("Generating pre-signed URL.");
             GeneratePresignedUrlRequest generatePresignedUrlRequest =
-                    new GeneratePresignedUrlRequest(bucketName, objectKey)
+                    new GeneratePresignedUrlRequest(bucketName, filename)
                             .withMethod(HttpMethod.PUT)
                             .withExpiration(expiration);
             URL url = s3.generatePresignedUrl(generatePresignedUrlRequest);
 
             System.out.println("Pre-Signed URL: " + url.toString());
+
+            return url.toString();
         } catch (AmazonServiceException e) {
             // The call was transmitted successfully, but Amazon S3 couldn't process
             // it, so it returned an error response.
@@ -127,62 +97,7 @@ public class S3Services {
             // couldn't parse the response from Amazon S3.
             e.printStackTrace();
         }
+
+        return filename;
     }
-
-
-//    ///
-//    public static void myAttempt() throws Exception {
-//
-//        String policy_document = constructPolicy();
-//        String aws_secret_key="123_sercet_key";
-//
-//        String policy = Base64.getEncoder().encode(
-//                policy_document.getBytes("UTF-8")).toString().replaceAll("\n","").replaceAll("\r","");
-//
-//        String dateStamp ="20200912";
-//        String region = "us-east-1";
-//        String serviceName ="s3";
-//        System.out.println("NEW SIGNATURE: "+getSignature(getSignatureKey(aws_secret_key,dateStamp,region,serviceName)));
-//
-//        System.out.println("ENCODED POLICY: "+policy);
-//    }
-//
-//    private static String constructPolicy() throws UnsupportedEncodingException {
-//
-//        String policy_document="{\"expiration\": \"2021-01-01T00:00:00Z\",\n" +
-//                "  \"conditions\": [ \n" +
-//                "    {\"bucket\": \"hellobucket\"}, \n" +
-//                "    [\"starts-with\", \"$key\", \"uploads/\"],\n" +
-//                "    {\"acl\": \"private\"},\n" +
-//                "    {\"success_action_redirect\": \"http://localhost/\"},\n" +
-//                "    [\"starts-with\", \"$Content-Type\", \"\"],\n" +
-//                "    [\"content-length-range\", 0, 1048576]\n" +
-//                "  ]\n" +
-//                "}";
-//
-//        String policy = Base64.getEncoder().encode(
-//                policy_document.getBytes("UTF-8")).toString().replaceAll("\n","").replaceAll("\r","");
-//        return policy;
-//    }
-//
-//    private static byte[] HmacSHA256(String data, byte[] key) throws Exception {
-//        String algorithm="HmacSHA256";
-//        Mac mac = Mac.getInstance(algorithm);
-//        mac.init(new SecretKeySpec(key, algorithm));
-//        return mac.doFinal(data.getBytes("UTF8"));
-//    }
-//
-//    private static byte[] getSignatureKey(String key, String dateStamp, String regionName, String serviceName) throws Exception  {
-//        byte[] kSecret = ("AWS4" + key).getBytes("UTF8");
-//        byte[] kDate    = HmacSHA256(dateStamp, kSecret);
-//        byte[] kRegion  = HmacSHA256(regionName, kDate);
-//        byte[] kService = HmacSHA256(serviceName, kRegion);
-//        byte[] kSigning = HmacSHA256("aws4_request", kService);
-//        return kSigning;
-//    }
-//
-//    private static String getSignature(byte[] key) throws Exception{
-//
-//        return BaseEncoding.base16().lowerCase().encode(HmacSHA256(constructPolicy(), key));
-//    }
 }
