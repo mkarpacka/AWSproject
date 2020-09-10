@@ -1,6 +1,5 @@
 package com.project.aws.controllers;
 
-import com.project.aws.services.ImageTransformServices;
 import com.project.aws.services.S3Services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,8 +15,6 @@ public class S3Controller {
 
     @Autowired
     S3Services s3Services;
-    @Autowired
-    ImageTransformServices imageTransformServices;
 
     @GetMapping("/")
     public ResponseEntity<?> getUploadMainPage() {
